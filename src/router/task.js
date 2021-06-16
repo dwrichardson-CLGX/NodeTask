@@ -1,15 +1,22 @@
 const express = require('express');
 const router = new express.Router();
 const Task = require('../models/task');
+const auth = require('../middleware/authentication')
 require('../db/mongoose');
 
-router.post('/tasks', (req,res) => {
-    const newTask = new Task(req.body);
+router.post('/tasks',auth, (req,res) => {
+   // const newTask = new Task(req.body);
+   const newTask = new Task({
+       ...req.body,
+       owner: req.user._id
+   });
+
     newTask.save().then(() => {
         res.status(201).send(newTask);
     }).catch(err => {
         res.status(400).send(err);
     });
+
 });
 
 router.get('/Tasks', async (req,res) => {
@@ -80,8 +87,12 @@ router.patch('/tasks/:id', async (req,res) => {
 
     try{
         const _id = req.params.id;
-        const incomingTask = new Task(req.body);
-        const updatedTask= await Task.findByIdAndUpdate(_id, req.body, {new: true});
+        const updatedTask= await Task.findById(_id);
+       updates.forEach((update) =>{
+           updatedTask[update] = req.body[update]
+        });
+        await updatedTask.save();
+
         if(!updatedTask)
         {
             return res.status(404).send('Task does not exist');
