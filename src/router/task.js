@@ -19,15 +19,46 @@ router.post('/tasks',auth, (req,res) => {
 
 });
 
-router.get('/Tasks', async (req,res) => {
+
+//GET /tasks?completed
+//GET /tasks?limit=10&skip=0
+//GET /tasks?sortBy=createdAt:desc
+router.get('/Tasks', auth, async (req,res) => {
     try{
-        const tasks = await Task.find({});
-        if(tasks) {
+        let filter = { owner: req.user._id};
+        let sort = {};
+        const isCompleted = req.query.completed;
+
+        if(isCompleted !== undefined){
+            filter = { owner: req.user._id , completed : isCompleted };
+        }
+
+        if(req.query.sortBy){
+            const parts = req.query.sortBy.split(':');
+            sort[parts[0]] = parts[1] === 'asc' ? 1 : -1;
+        }
+        const tasks = await Task.find(filter)
+            .setOptions({
+                limit: parseInt(req.query.limit),
+                skip: parseInt(req.query.skip),
+                sort
+            });
+        // await req.user.populate({
+        //    path: 'tasks',
+        //     match: filter,
+        //     options: {
+        //        limit: parseInt(req.query.limit),
+        //        skip: parseInt(req.query.limit)
+        //     }
+        // }).execPopulate();
+        // res.send(req.user.tasks);
+
+         if(tasks) {
             res.status(200).send(tasks);
-        }
-        else{
-            return res.status(404).send('No tasks were found');
-        }
+         }
+         else{
+             return res.status(404).send('No tasks were found');
+         }
 
     }catch (e) {
         res.status(500).send(e);
@@ -45,17 +76,22 @@ router.get('/Tasks', async (req,res) => {
     // })
 });
 
-router.get('/Tasks/:id', async (req,res) => {
+router.get('/Tasks/:id',auth, async (req,res) => {
 
 
     try{
         const _id = req.params.id;
-        const task = await Task.findById(_id)
+      //const task = await Task.findById(_id)
+       const task = await Task.findOne({_id, owner: req.user._id });
+
+       console.log(_id);
+       console.log(req.user._id);
+       console.log(task);
         if(task){
             res.status(200).send(task);
         }
         else{
-            return res.status(404).send('No tasks exist');
+            return res.status(404).send();
         }
     }
     catch (e) {
@@ -74,7 +110,7 @@ router.get('/Tasks/:id', async (req,res) => {
     // })
 })
 
-router.patch('/tasks/:id', async (req,res) => {
+router.patch('/tasks/:id',auth, async (req,res) => {
     const updates = Object.keys(req.body);
     const allowedUpdates  =  ['completed','description'];
     const isValidOperation = updates.every((update) => {
@@ -87,16 +123,19 @@ router.patch('/tasks/:id', async (req,res) => {
 
     try{
         const _id = req.params.id;
-        const updatedTask= await Task.findById(_id);
-       updates.forEach((update) =>{
-           updatedTask[update] = req.body[update]
-        });
-        await updatedTask.save();
+       // const updatedTask = await Task.findById(_id);
 
+        const updatedTask = await Task.findOne({_id, owner: req.user._id})
         if(!updatedTask)
         {
             return res.status(404).send('Task does not exist');
         }
+
+
+        updates.forEach((update) =>{
+            updatedTask[update] = req.body[update]
+        });
+        await updatedTask.save();
 
         res.send(updatedTask);
     }
@@ -105,9 +144,11 @@ router.patch('/tasks/:id', async (req,res) => {
     }
 });
 
-router.delete('/tasks/:id', async(req, res) => {
+router.delete('/tasks/:id',auth, async(req, res) => {
     try{
-        const task = await Task.findByIdAndDelete(req.params.id)
+      //  const task = await Task.findByIdAndDelete(req.params.id)
+
+        const task = await Task.findOneAndDelete({_id: req.params.id, owner: req.user._id});
         if(!task){
             return res.status(404).send();
         }

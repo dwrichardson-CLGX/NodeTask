@@ -41,6 +41,16 @@ const token =
 console.log(token);
 const data = jwt.verify(token,'mysecretismyown')
 console.log(data);
+
+// const task = await Task.findById('60ca4eee2688bc96433bd448');
+// await task.populate('owner').execPopulate();
+// console.log(task.owner);
+//
+// const user = await User.findById('60ca4e1e8df3c1962fce6686');
+// await user.populate('tasks').execPopulate();
+//
+// console.log(user.tasks);
+
 }
 
 myFunction();
