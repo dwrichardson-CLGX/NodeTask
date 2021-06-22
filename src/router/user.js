@@ -1,9 +1,31 @@
 const express = require('express');
+const multer = require('multer');
 const router = new express.Router();
+
 require('../db/mongoose');
 const User = require('../models/user');
 const auth = require('../middleware/authentication');
 
+const upload = multer({
+    dest: 'avatars',
+    limits : {
+     fileSize: 1000000
+    },
+    fileFilter(req,file,cb){
+
+        if(!file.originalname.match(/\.(jpeg|png|jpg)$/)){
+            cb(new Error('Please upload an image file '));
+        }
+        else{
+            cb(undefined,true);
+        }
+/*        cb(new Error('File Must be a PDF'))
+        cb(undefined,true);
+        cb(undefined,false);*/
+
+
+    }
+});
 
 router.get('/users/me', auth, async (req,res)=>{
     // try {
@@ -154,6 +176,13 @@ router.delete('/users/me',auth, async(req, res) => {
     catch (e) {
 
     }
+});
+
+
+router.post('/users/me/avatar', upload.single('avatar'), async(req,res) => {
+        res.send();
+}, (error, req, res, next) => {
+    res.status(400).send({error: error.message});
 });
 
 module.exports = router;
