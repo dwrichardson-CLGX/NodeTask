@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const sharp = require('sharp');
 const Task = require('./task');
-
+const jwt_key = process.env.JWT_KEY;
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -73,7 +73,7 @@ userSchema.methods.toJSON = function(){
 userSchema.methods.generateAuthToken = async function(){
     const user = this;
     const token = jwt.sign({_id: user._id},
-            'mysecretismyown',
+            `${jwt_key}`,
             {expiresIn: '7 days'});
 
     user.tokens = user.tokens.concat({ token: token })
