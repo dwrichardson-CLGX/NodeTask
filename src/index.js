@@ -6,7 +6,9 @@ const userRouter = require('./router/user');
 const taskRouter = require('./router/task');
 
 const app = express();
-const port = process.env.PORT || 3000;
+console.log(process.env);
+const port = process.env.PORT; // || 3000;
+/*
 
 
 const multer = require('multer');
@@ -16,6 +18,7 @@ const upload = multer({
 app.post('/upload', upload.single('upload') , (req,res) => {
     res.send();
 })
+*/
 
 
 // app.use((req,res,next) => {
@@ -43,13 +46,14 @@ app.listen(port,() =>{
 
 
 const jwt = require('jsonwebtoken')
+const jwt_key = process.env.JWT_KEY;
 const myFunction = async() => {
 const token =
     jwt.sign({_id: 'abc123'},
-        'mysecretismyown',
+        `${jwt_key}`,
         {expiresIn: '7 days'});
 console.log(token);
-const data = jwt.verify(token,'mysecretismyown')
+const data = jwt.verify(token,`${jwt_key}`)
 console.log(data);
 
 // const task = await Task.findById('60ca4eee2688bc96433bd448');

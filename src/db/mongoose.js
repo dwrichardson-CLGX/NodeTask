@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
-const uri = "mongodb+srv://dwain:dwain@dwainmongo.6kmb3.mongodb.net/Tasks?retryWrites=true&w=majority";
+const uri = process.env.MONGODB_URL;
 
 mongoose.connect(uri, {
     useNewUrlParser: true,
