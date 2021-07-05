@@ -4,27 +4,15 @@ const Task = require('../models/task');
 const auth = require('../middleware/authentication')
 require('../db/mongoose');
 
-router.post('/tasks',auth, (req,res) => {
-   // const newTask = new Task(req.body);
-   const newTask = new Task({
-       ...req.body,
-       owner: req.user._id
-   });
-
-    newTask.save().then(() => {
-        res.status(201).send(newTask);
-    }).catch(err => {
-        res.status(400).send(err);
-    });
-
-});
-
 
 //GET /tasks?completed
 //GET /tasks?limit=10&skip=0
 //GET /tasks?sortBy=createdAt:desc
-router.get('/Tasks', auth, async (req,res) => {
+router.get('/tasks', auth, async (req,res) =>
+{
+    console.log('GETTING USER TASKS');
     try{
+
         let filter = { owner: req.user._id};
         let sort = {};
         const isCompleted = req.query.completed;
@@ -53,6 +41,7 @@ router.get('/Tasks', auth, async (req,res) => {
         // }).execPopulate();
         // res.send(req.user.tasks);
 
+        console.log(tasks);
          if(tasks) {
             res.status(200).send(tasks);
          }
@@ -76,7 +65,7 @@ router.get('/Tasks', auth, async (req,res) => {
     // })
 });
 
-router.get('/Tasks/:id',auth, async (req,res) => {
+router.get('/tasks/:id',auth, async (req,res) => {
 
 
     try{
@@ -109,6 +98,22 @@ router.get('/Tasks/:id',auth, async (req,res) => {
     //     res.status(500).send(err);
     // })
 })
+
+router.post('/tasks',auth, (req,res) => {
+    // const newTask = new Task(req.body);
+    const newTask = new Task({
+        ...req.body,
+        owner: req.user._id
+    });
+
+    console.log('creating new Task!!!!');
+    newTask.save().then(() => {
+        res.status(201).send(newTask);
+    }).catch(err => {
+        res.status(400).send(err);
+    });
+
+});
 
 router.patch('/tasks/:id',auth, async (req,res) => {
     const updates = Object.keys(req.body);
@@ -147,8 +152,10 @@ router.patch('/tasks/:id',auth, async (req,res) => {
 router.delete('/tasks/:id',auth, async(req, res) => {
     try{
       //  const task = await Task.findByIdAndDelete(req.params.id)
-
+        console.log(req.params.id);
+        console.log(req.user._id);
         const task = await Task.findOneAndDelete({_id: req.params.id, owner: req.user._id});
+        console.log(task);
         if(!task){
             return res.status(404).send();
         }

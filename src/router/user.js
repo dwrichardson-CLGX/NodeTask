@@ -36,7 +36,7 @@ router.get('/users/me', auth, async (req,res)=>{
     // catch (e) {
     //     res.status(500).send(e);
     // }
-
+   console.log('getting user profile');
     res.send(req.user);
     // User.find({}).then((docs) => {
     //     res.status(200).send(docs);
@@ -176,7 +176,7 @@ router.delete('/users/me',auth, async(req, res) => {
 
         await req.user.remove();
         cancelAccountEmail(req.user.email,req.user.name);
-        res.send(req.user);
+        res.send({user: req.user});
     }
     catch (e) {
 
@@ -191,6 +191,7 @@ router.post('/users/me/avatar',auth, upload.single('avatar'), async(req,res) => 
     await req.user.save();
         res.send();
 }, (error, req, res, next) => {
+  console.log(error);
     res.status(400).send({error: error.message});
 });
 
